@@ -16,20 +16,29 @@ permissions:
 jobs:
   quality:
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.4'
+          php-version: '8.2'
+          tools: composer
 
-      - name: Install Dependencies
-        run: |
-          composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
-          npm install
+      - name: Install PHP Dependencies
+        run: composer install --no-interaction --prefer-dist
 
-      - name: Run Pint
+      - name: Install Node Dependencies
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - run: npm ci
+
+      - name: Run Laravel Pint
         run: vendor/bin/pint
 
       - name: Format Frontend
@@ -38,6 +47,7 @@ jobs:
       - name: Lint Frontend
         run: npm run lint
 
+      # Optional: Commit any auto-fixed files
       # - name: Commit Changes
       #   uses: stefanzweifel/git-auto-commit-action@v5
       #   with:
